@@ -25,24 +25,26 @@ If desired, `siglongjmp` can be used to jump out of the fault handler.
 
 ## Targets
 
-| OS           | Architecture | Tested             |
-| ------------ | ------------ | ------------------ |
-| DragonFlyBSD | x86_64       |                    |
-| FreeBSD      | aarch64      |                    |
-| FreeBSD      | i386         |                    |
-| FreeBSD      | riscv        |                    |
-| FreeBSD      | x86_64       |                    |
-| OpenBSD      | aarch64      | :white_check_mark: |
-| OpenBSD      | i386         |                    |
-| OpenBSD      | riscv        |                    |
-| OpenBSD      | x86_64       |                    |
-| Linux        | aarch64      |                    |
-| Linux        | i386         |                    |
-| Linux        | riscv        |                    |
-| Linux        | x86_64       |                    |
-| MacOS        | aarch64      | :white_check_mark: |
-| MacOS        | x86_64       | :white_check_mark: |
-| NetBSD       | aarch64      |                    |
-| NetBSD       | i386         |                    |
-| NetBSD       | riscv        |                    |
-| NetBSD       | x86_64       |                    |
+| OS           | CPU      | Tested (version)        |
+| ------------ | -------- | ----------------------- |
+| DragonFlyBSD | x86_64   |                         |
+| FreeBSD      | aarch64  |                         |
+| FreeBSD      | i386     |                         |
+| FreeBSD      | riscv    |                         |
+| FreeBSD      | x86_64   |                         |
+| OpenBSD      | aarch64  | :white_check_mark: 7.1  |
+| OpenBSD      | i386     |                         |
+| OpenBSD      | riscv    |                         |
+| OpenBSD      | x86_64   |                         |
+| Linux        | aarch64  |                         |
+| Linux        | i386     |                         |
+| Linux        | riscv    |                         |
+| Linux        | x86_64   |                         |
+| MacOS        | aarch64  | :white_check_mark: 12.4 |
+| MacOS        | x86_64   | :white_check_mark: 12.4 |
+| NetBSD       | aarch64  |                         |
+| NetBSD       | i386     |                         |
+| NetBSD       | riscv    |                         |
+| NetBSD       | x86_64   |                         |
+
+
