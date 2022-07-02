@@ -17,6 +17,7 @@
 #include <signal.h>
 
 #if defined(__OpenBSD__)
+# define SIGNALS	{ SIGSEGV, SIGBUS }
 # if defined(__aarch64__)
 #  define PC(ctx)	((ctx)->sc_elr)
 # elif defined(__amd64__) || defined(__x86_64__)
@@ -27,8 +28,10 @@
 #  define PC(ctx)	((ctx)->sc_sepc)
 # endif
 #elif defined(__NetBSD__)
+# define SIGNALS	{ SIGSEGV, SIGBUS }
 # define PC(ctx)	_UC_MACHINE_PC(ctx)
 #elif defined(__FreeBSD__)
+# define SIGNALS	{ SIGSEGV, SIGBUS }
 # if defined(__aarch64__)
 #  define PC(ctx)	((ctx)->uc_mcontext.mc_gpregs.gp_elr)
 # elif defined(__amd64__) || defined(__x86_64__)
@@ -39,10 +42,12 @@
 #  define PC(ctx)	((ctx)->uc_mcontext.mc_gpregs.gp_sepc)
 # endif
 #elif defined(__DragonFly__)
+# define SIGNALS	{ SIGSEGV, SIGBUS }
 # if defined(__amd64__) || defined(__x86_64__)
 #  define PC(ctx)	((ctx)->uc_mcontext.mc_rip)
 # endif
 #elif defined(__linux__)
+# define SIGNALS	{ SIGSEGV, SIGBUS }
 # define SC(ctx)	((struct sigcontext *) &(ctx)->uc_mcontext)
 # if defined(__aarch64__)
 #  define PC(ctx)	(SC(ctx)->pc)
@@ -54,6 +59,7 @@
 #  define PC(ctx)	(SC(ctx)->pc)
 # endif
 #elif defined(__APPLE__) && defined(__MACH__)
+# define SIGNALS	{ SIGSEGV, SIGBUS }
 # if defined(__aarch64__)
 #  define PC(ctx)	((ctx)->uc_mcontext->__ss.__pc)
 # elif defined(__amd64__) || defined(__x86_64__)
@@ -74,20 +80,37 @@ handle_fault(int sig, siginfo_t *info, void *ctx)
 static int
 hook_fault(void)
 {
+	static const int signals[] = SIGNALS;
+
 	sigset_t mask;
 	sigfillset(&mask);
 
-	return sigaction(SIGSEGV, &(struct sigaction) {
-		.sa_sigaction = handle_fault,
-		.sa_mask = mask,
-		.sa_flags = SA_SIGINFO
-	}, NULL);
+	for (unsigned int i = 0;
+	     i < sizeof(signals) / sizeof(signals[0]);
+	     i++) {
+		if (sigaction(signals[i], &(struct sigaction) {
+			.sa_sigaction = handle_fault,
+			.sa_mask = mask,
+			.sa_flags = SA_SIGINFO
+		    }, NULL) != 0)
+			return -1;
+	}
+
+	return 0;
 }
 
 static int
 unhook_fault(void)
 {
-	return sigaction(SIGSEGV, &(struct sigaction) {
-		.sa_handler = SIG_DFL
-	}, NULL);
+	static const int signals[] = SIGNALS;
+
+	for (unsigned int i = 0;
+	     i < sizeof(signals) / sizeof(signals[0]);
+	     i++) {
+		sigaction(signals[i], &(struct sigaction) {
+			.sa_handler = SIG_DFL
+		    }, NULL);
+	}
+
+	return 0;
 }
