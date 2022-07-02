@@ -46,3 +46,11 @@ If desired, `siglongjmp` can be used to jump out of the fault handler.
 | NetBSD       | i386     |                         |
 | NetBSD       | riscv    |                         |
 | NetBSD       | x86_64   |                         |
+
+## TODO
+
+* Write a formal test suite.
+* Test on more platforms.
+* Implement delegating to system fault handler in case the installed one
+  returns `0`.
+* Write a man page.
