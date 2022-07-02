@@ -39,12 +39,10 @@ If desired, `siglongjmp` can be used to jump out of the fault handler.
 | Linux        | aarch64  |                         |
 | Linux        | i386     |                         |
 | Linux        | riscv    |                         |
-| Linux        | x86_64   |                         |
+| Linux        | x86_64   | :white_check_mark: 5.16 |
 | MacOS        | aarch64  | :white_check_mark: 12.4 |
 | MacOS        | x86_64   | :white_check_mark: 12.4 |
 | NetBSD       | aarch64  |                         |
 | NetBSD       | i386     |                         |
 | NetBSD       | riscv    |                         |
 | NetBSD       | x86_64   |                         |
-
-
