@@ -107,7 +107,7 @@ hook_called = 0;
 static void
 push(native_thread_state_t *ts, const void *buf, size_t len)
 {
-	uintptr_t sp = SP(*ts) - len;
+	uintptr_t sp = SP(*ts) - ALIGN(len, STACK_ALIGN);
 	memcpy((uint64_t *) sp, buf, len);
 	SET_SP(*ts, sp);
 }
@@ -172,10 +172,10 @@ handle_segv(mach_port_t exception_port, mach_port_t thread,
 	if ((void *) PC(ts) == trampoline_return) {
 		ts = *(native_thread_state_t *) ARG(ts, 1);
 	} else {
-		push(&ts, (void *) &ts, ALIGN(sizeof(ts), STACK_ALIGN));
+		push(&ts, (void *) &ts, sizeof(ts));
 		SET_ARG(ts, 0, SP(ts));
 
-		push(&ts, (void *) &es, ALIGN(sizeof(es), STACK_ALIGN));
+		push(&ts, (void *) &es, sizeof(es));
 		SET_ARG(ts, 1, SP(ts));
 
 		SET_PC(ts, trampoline);
