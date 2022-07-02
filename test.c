@@ -23,7 +23,7 @@ segv(const void *pc, const void *addr, void *arg)
 	return 1;
 }
 
-void *
+__attribute__ ((noinline)) void *
 pc(void)
 {
 	return __builtin_return_address(0);
