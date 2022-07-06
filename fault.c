@@ -16,12 +16,10 @@
 
 #include "fault.h"
 #include <stddef.h>
+#include <errno.h>
 
-static int
-(*faultfun)(const void *, const void *, void *arg);
-
-static void *
-faultarg;
+static struct faultaction
+curact = { 0 };
 
 #if defined(__OpenBSD__) || \
     defined(__NetBSD__) || \
@@ -36,19 +34,27 @@ faultarg;
 #endif
 
 int
-fault(int (*fun)(const void *, const void *, void *), void *arg)
+fault(int flt, const struct faultaction *act, struct faultaction *oact)
 {
-	if (faultfun != fun) {
+	if (flt != FAULT_BAD_ACCESS) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (oact != NULL)
+		*oact = curact;
+
+	if (act != NULL) {
 		int res;
-		if (faultfun == NULL && fun != NULL)
+
+		if (act->fa_fun != NULL && curact.fa_fun == NULL)
 			res = hook_fault();
-		else if (faultfun != NULL && fun == NULL)
+		else if (act->fa_fun == NULL && curact.fa_fun != NULL)
 			res = unhook_fault();
 		if (res < 0)
 			return res;
 
-		faultfun = fun;
-		faultarg = arg;
+		curact = *act;
 	}
 
 	return 0;

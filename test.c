@@ -50,7 +50,10 @@ static int
 test_longjmp(void)
 {
 	if (!sigsetjmp(env, 1)) {
-		fault(segv, NULL);
+		fault(FAULT_BAD_ACCESS, &(struct faultaction) {
+			.fa_fun = segv,
+			.fa_arg = NULL
+		}, NULL);
 		(void) *(volatile char *) NULL;
 	}
 
@@ -64,7 +67,10 @@ static int
 test_pc(void)
 {
 	if (!sigsetjmp(env, 1)) {
-		fault(segv, NULL);
+		fault(FAULT_BAD_ACCESS, &(struct faultaction) {
+			.fa_fun = segv,
+			.fa_arg = NULL
+		}, NULL);
 
 #if defined(__aarch64__)
 		asm(
@@ -101,7 +107,10 @@ static int
 test_addr(void)
 {
 	if (!sigsetjmp(env, 1)) {
-		fault(segv, NULL);
+		fault(FAULT_BAD_ACCESS, &(struct faultaction) {
+			.fa_fun = segv,
+			.fa_arg = NULL
+		}, NULL);
 		(void) ((volatile char *) NULL)[0x10];
 	}
 
@@ -121,7 +130,10 @@ test_write(void)
 	}
 
 	if (!sigsetjmp(env, 1)) {
-		fault(segv, NULL);
+		fault(FAULT_BAD_ACCESS, &(struct faultaction) {
+			.fa_fun = segv,
+			.fa_arg = NULL
+		}, NULL);
 		*(volatile char *) addr = 42;
 	}
 
@@ -146,7 +158,10 @@ test_unmapped(void)
 	}
 
 	if (!sigsetjmp(env, 1)) {
-		fault(segv, NULL);
+		fault(FAULT_BAD_ACCESS, &(struct faultaction) {
+			.fa_fun = segv,
+			.fa_arg = NULL
+		}, NULL);
 		(void) *(volatile char *) addr;
 	}
 
@@ -157,7 +172,10 @@ static int
 test_bad(void)
 {
 	if (!sigsetjmp(env, 1)) {
-		fault(segv, NULL);
+		fault(FAULT_BAD_ACCESS, &(struct faultaction) {
+			.fa_fun = segv,
+			.fa_arg = NULL
+		}, NULL);
 		(void) *(volatile int *) BAD_ADDR;
 	}
 
@@ -168,7 +186,10 @@ static int
 test_unaligned(void)
 {
 	if (!sigsetjmp(env, 1)) {
-		fault(segv, NULL);
+		fault(FAULT_BAD_ACCESS, &(struct faultaction) {
+			.fa_fun = segv,
+			.fa_arg = NULL
+		}, NULL);
 		(void) ((volatile char *) NULL)[1];
 	}
 
@@ -200,7 +221,10 @@ test_retry(void)
 	}
 
 	if (!sigsetjmp(env, 1)) {
-		fault(retry_segv, NULL);
+		fault(FAULT_BAD_ACCESS, &(struct faultaction) {
+			.fa_fun = retry_segv,
+			.fa_arg = NULL
+		}, NULL);
 		*(volatile char *) addr = 42;
 	}
 

@@ -70,9 +70,9 @@
 static void
 handle_fault(int sig, siginfo_t *info, void *ctx)
 {
-	if (faultfun != NULL && faultfun(
+	if (curact.fa_fun != NULL && curact.fa_fun(
 	    (const void *) PC((ucontext_t *) ctx),
-	    info->si_addr, faultarg)) {
+	    info->si_addr, curact.fa_arg)) {
 		return;
 	}
 }

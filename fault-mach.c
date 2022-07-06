@@ -18,7 +18,6 @@
  * See: Mac OS X Internals: A Systems Approach
  */
 
-#include <errno.h>
 #include <pthread.h>
 
 #include <mach/mach.h>
@@ -119,9 +118,9 @@ static __attribute__ ((noreturn)) void
 trampoline(native_thread_state_t *ts, native_exception_state_t *es)
 {
 	int ok = 0;
-	if (faultfun != NULL && faultfun(
+	if (curact.fa_fun != NULL && curact.fa_fun(
 	    (const void *) PC(*ts), (const void *) ADDR(*es),
-	    faultarg)) {
+	    curact.fa_arg)) {
 		ok = 1;
 	}
 

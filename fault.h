@@ -17,6 +17,15 @@
 #ifndef _FAULT_H_
 #define _FAULT_H_
 
-int	 fault(int (*fun)(const void *, const void *, void *), void *arg);
+enum {
+	FAULT_BAD_ACCESS = 0
+};
+
+struct faultaction {
+	int	(*fa_fun)(const void *, const void *, void *);
+	void	*fa_arg;
+};
+
+int	 fault(int flt, const struct faultaction *act, struct faultaction *oact);
 
 #endif /* _FAULT_H_ */
