@@ -1,9 +1,14 @@
 CFLAGS	= -O2
-SRCS	= test.c fault.c
+SRCS	= fault.c
 OBJS	= $(SRCS:.c=.o)
 
-test: $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS)
+all: libfault.a test
+
+test: test.c libfault.a
+	$(CC) $(CFLAGS) -o $@ test.c libfault.a
+
+libfault.a: $(OBJS)
+	$(AR) rcs $@ $(OBJS)
 
 clean:
 	rm -f test $(OBJS)
