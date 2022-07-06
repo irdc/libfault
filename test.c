@@ -95,6 +95,12 @@ ENTRY(test_pc_fault) "\n"
 			"movl	(%%eax), %%eax\n"
 			: : : "eax"
                 );
+# elif defined(__riscv64) || (defined(__riscv) && __riscv_xlen == 64)
+		asm(
+ENTRY(test_pc_fault) "\n"
+			"ld	x1, (x0)\n"
+			: : : "x1"
+                );
 #else
 # error "Unsupported architecture"
 #endif

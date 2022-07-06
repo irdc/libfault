@@ -24,7 +24,7 @@
 #  define PC(ctx)	((ctx)->sc_rip)
 # elif defined(__i386__)
 #  define PC(ctx)	((ctx)->sc_eip)
-# elif defined(__riscv64)
+# elif defined(__riscv64) || (defined(__riscv) && __riscv_xlen == 64)
 #  define PC(ctx)	((ctx)->sc_sepc)
 # endif
 #elif defined(__NetBSD__)
@@ -38,7 +38,7 @@
 #  define PC(ctx)	((ctx)->uc_mcontext.mc_rip)
 # elif defined(__i386__)
 #  define PC(ctx)	((ctx)->uc_mcontext.mc_eip)
-# elif defined(__riscv64)
+# elif defined(__riscv64) || (defined(__riscv) && __riscv_xlen == 64)
 #  define PC(ctx)	((ctx)->uc_mcontext.mc_gpregs.gp_sepc)
 # endif
 #elif defined(__DragonFly__)
@@ -55,7 +55,7 @@
 #  define PC(ctx)	(SC(ctx)->rip)
 # elif defined(__i386__)
 #  define PC(ctx)	(SC(ctx)->eip)
-# elif defined(__riscv64)
+# elif defined(__riscv64) || (defined(__riscv) && __riscv_xlen == 64)
 #  define PC(ctx)	(SC(ctx)->pc)
 # endif
 #elif defined(__APPLE__) && defined(__MACH__)
