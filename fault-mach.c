@@ -25,8 +25,6 @@
 #include <mach/message.h>
 #include <mach/mig.h>
 
-#define ALIGN(v, b)	(((v) + ((b) - 1)) & ~((b) - 1))
-
 #if defined(__aarch64__)
 # define NATIVE_THREAD_STATE		ARM_THREAD_STATE
 # define NATIVE_THREAD_STATE_COUNT	ARM_UNIFIED_THREAD_STATE_COUNT
@@ -53,9 +51,9 @@ typedef arm_exception_state64_t native_exception_state_t;
 # define NATIVE_THREAD_STATE_COUNT	x86_THREAD_STATE_COUNT
 typedef x86_thread_state_t native_thread_state_t;
 
-# define NATIVE_EXCEPTION_STATE		x86_EXCEPTION_STATE64
-# define NATIVE_EXCEPTION_STATE_COUNT	x86_EXCEPTION_STATE64_COUNT
-typedef x86_exception_state64_t native_exception_state_t;
+# define NATIVE_EXCEPTION_STATE		x86_EXCEPTION_STATE
+# define NATIVE_EXCEPTION_STATE_COUNT	x86_EXCEPTION_STATE_COUNT
+typedef x86_exception_state_t native_exception_state_t;
 
 # define PC(ts)		((ts).uts.ts64.__rip)
 # define SET_PC(ts,pc)	((ts).uts.ts64.__rip = (uintptr_t) (pc))
@@ -66,7 +64,7 @@ typedef x86_exception_state64_t native_exception_state_t;
 # define ARG(ts,a)	ARG ## a(ts)
 # define SET_ARG(ts,a,v) (ARG ## a(ts) = (v))
 
-# define ADDR(es)	((void *) (es).__faultvaddr)
+# define ADDR(es)	((void *) (es).ues.es64.__faultvaddr)
 
 # define STACK_ALIGN	16
 #endif
@@ -106,7 +104,7 @@ hook_called = 0;
 static void
 push(native_thread_state_t *ts, const void *buf, size_t len)
 {
-	uintptr_t sp = SP(*ts) - ALIGN(len, STACK_ALIGN);
+	uintptr_t sp = SP(*ts) - len;
 	memcpy((uint64_t *) sp, buf, len);
 	SET_SP(*ts, sp);
 }
@@ -176,6 +174,14 @@ handle_segv(mach_port_t exception_port, mach_port_t thread,
 
 		push(&ts, (void *) &es, sizeof(es));
 		SET_ARG(ts, 1, SP(ts));
+
+		SET_SP(ts, SP(ts) - (SP(ts) & STACK_ALIGN - 1));
+#if defined(__amd64__) || defined(__x86_64__)
+		/* on x86-64, calling a function pushes the return address
+		 * onto the stack; take that into account here otherwise the
+		 * stack becomes misaligned. */
+		SET_SP(ts, SP(ts) - sizeof(void *));
+#endif
 
 		SET_PC(ts, trampoline);
 	}
