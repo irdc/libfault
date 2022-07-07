@@ -32,16 +32,17 @@ pc(void)
 	return __builtin_return_address(0);
 }
 
-const void *segv_pc, *segv_addr;
+struct faultinfo
+lastfault = { 0 };
+
 sigjmp_buf env;
 
 int
-segv(const void *pc, const void *addr, void *arg)
+segv(int flt, const struct faultinfo *fi, void *arg)
 {
-	printf("segv: pc=%p, addr=%p\n", pc, addr);
+	printf("segv: pc=%p, sp=%p, addr=%p\n", fi->fi_pc, fi->fi_sp, fi->fi_addr);
 
-	segv_pc = pc;
-	segv_addr = addr;
+	lastfault = *fi;
 
 	siglongjmp(env, 1);
 }
@@ -106,7 +107,48 @@ ENTRY(test_pc_fault) "\n"
 #endif
 	}
 
-	return segv_pc == test_pc_fault ? 0 : -1;
+	return lastfault.fi_pc == test_pc_fault ? 0 : -1;
+}
+
+static int
+test_sp(void)
+{
+	void *volatile cursp;
+
+	if (!sigsetjmp(env, 1)) {
+		fault(FAULT_BAD_ACCESS, &(struct faultaction) {
+			.fa_fun = segv,
+			.fa_arg = NULL
+		}, NULL);
+
+#if defined(__aarch64__)
+		asm(
+			"mov	%0, sp\n"
+			: "=r" (cursp)
+		);
+#elif defined(__amd64__) || defined(__x86_64__)
+		asm(
+			"movq	%%rsp, %0\n"
+			: "=r" (cursp)
+		);
+#elif defined(__i386__)
+		asm(
+			"movw	%%esp, %0\n"
+			: "=r" (cursp)
+		);
+# elif defined(__riscv64) || (defined(__riscv) && __riscv_xlen == 64)
+		asm(
+			"mv	%0, sp\n"
+			: "=r" (cursp)
+		);
+#else
+# error "Unsupported architecture"
+#endif
+
+		(void) *(volatile char *) NULL;
+	}
+
+	return lastfault.fi_sp == cursp ? 0 : -1;
 }
 
 static int
@@ -120,7 +162,7 @@ test_addr(void)
 		(void) ((volatile char *) NULL)[0x10];
 	}
 
-	return segv_addr == (void *) 0x10 ? 0 : -1;
+	return lastfault.fi_addr == (void *) 0x10 ? 0 : -1;
 }
 
 static int
@@ -143,7 +185,7 @@ test_write(void)
 		*(volatile char *) addr = 42;
 	}
 
-	return segv_addr == addr ? 0 : -1;
+	return lastfault.fi_addr == addr ? 0 : -1;
 }
 
 static int
@@ -171,7 +213,7 @@ test_unmapped(void)
 		(void) *(volatile char *) addr;
 	}
 
-	return segv_addr == addr ? 0 : -1;
+	return lastfault.fi_addr == addr ? 0 : -1;
 }
 
 static int
@@ -185,7 +227,7 @@ test_bad(void)
 		(void) *(volatile int *) BAD_ADDR;
 	}
 
-	return segv_addr == BAD_ADDR ? 0 : -1;
+	return lastfault.fi_addr == BAD_ADDR ? 0 : -1;
 }
 
 static int
@@ -199,15 +241,15 @@ test_unaligned(void)
 		(void) ((volatile char *) NULL)[1];
 	}
 
-	return segv_addr == (void *) 1 ? 0 : -1;
+	return lastfault.fi_addr == (void *) 1 ? 0 : -1;
 }
 
 int
-retry_segv(const void *pc, const void *addr, void *arg)
+retry_segv(int flt, const struct faultinfo *fi, void *arg)
 {
-	printf("retry_segv: pc=%p, addr=%p\n", pc, addr);
+	printf("retry_segv: pc=%p, sp=%p, addr=%p\n", fi->fi_pc, fi->fi_sp, fi->fi_addr);
 
-	if (mprotect((void *) addr, sysconf(_SC_PAGESIZE), PROT_READ | PROT_WRITE) != 0) {
+	if (mprotect((void *) fi->fi_addr, sysconf(_SC_PAGESIZE), PROT_READ | PROT_WRITE) != 0) {
 		perror("mprotect");
 		exit(1);
 	}
@@ -243,6 +285,7 @@ static struct {
 } tests[] = {
 	{ "longjmp",	test_longjmp },
 	{ "pc",		test_pc },
+	{ "sp",		test_sp },
 	{ "addr",	test_addr },
 	{ "write",	test_write },
 	{ "unmapped",	test_unmapped },

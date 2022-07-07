@@ -117,8 +117,12 @@ trampoline(native_thread_state_t *ts, native_exception_state_t *es)
 {
 	int ok = 0;
 	if (curact.fa_fun != NULL && curact.fa_fun(
-	    (const void *) PC(*ts), (const void *) ADDR(*es),
-	    curact.fa_arg)) {
+	    FAULT_BAD_ACCESS, &(struct faultinfo) {
+		.fi_pc = (void *) PC(*ts),
+		.fi_sp = (void *) SP(*ts),
+		.fi_addr = (void *) ADDR(*es),
+		.fi_ctx = ts
+	    }, curact.fa_arg)) {
 		ok = 1;
 	}
 

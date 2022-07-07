@@ -21,8 +21,15 @@ enum {
 	FAULT_BAD_ACCESS = 0
 };
 
+struct faultinfo {
+	void		*fi_pc,
+			*fi_sp,
+			*fi_addr,
+			*fi_ctx;
+};
+
 struct faultaction {
-	int	(*fa_fun)(const void *, const void *, void *);
+	int	(*fa_fun)(int flt, const struct faultinfo *, void *);
 	void	*fa_arg;
 };
 

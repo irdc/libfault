@@ -7,6 +7,7 @@ all: libfault.a test tests
 tests: test
 	./test longjmp
 	./test pc
+	./test sp
 	./test addr
 	./test write
 	./test unmapped
