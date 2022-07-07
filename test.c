@@ -24,7 +24,7 @@
 # define ENTRY(name)	C(name) ":"
 #endif
 
-#define BAD_ADDR	((void *) (ptrdiff_t) -1)
+#define BAD_ADDR	((void *) (ptrdiff_t) -sizeof(int))
 
 __attribute__ ((noinline)) void *
 pc(void)
